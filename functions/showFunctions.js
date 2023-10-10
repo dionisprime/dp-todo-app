@@ -1,21 +1,21 @@
-const { STATUS, PRIORITY, STATUSES, PRIORITIES } = require('./constants.js');
+const { STATUS, PRIORITY, STATUSES, PRIORITIES } = require('../constants.js');
 const { findTaskIndex, convertItemsToArray } = require('./helpFunctions.js');
 
 const simpleShowList = (todoList) => {
-    console.log('Список дел:');
+    let result = `Список дел: \n`;
+    // console.log("Список дел:");
     STATUSES.forEach((status) => {
         const tasks = todoList.filter((task) => task.status === status);
 
         if (tasks.length > 0) {
             tasks.forEach((task) => {
-                console.log(
-                    `"${task.name}": ${task.status} - ${task.priority}`
-                );
+                result += `"${task.name}": ${task.status} - ${task.priority}\n`;
             });
         } else {
-            console.log(`Nothing is ${status}`);
+            result += `Nothing is ${status}\n`;
         }
     });
+    return result;
 };
 
 const showListBonusTask = (todoList) => {

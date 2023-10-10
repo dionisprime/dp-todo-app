@@ -1,0 +1,23 @@
+{
+    "name": "dp-todo-app",
+    "version": "1.0.0",
+    "description": "TODO APP with express server",
+    "main": "todo_v6-express.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dionisprime/dp-todo-app.git"
+    },
+    "author": "dionisprime",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/dionisprime/dp-todo-app/issues"
+    },
+    "homepage": "https://github.com/dionisprime/dp-todo-app#readme",
+    "dependencies": {
+        "express": "^4.18.2",
+        "nodemon": "^3.0.1"
+    }
+}

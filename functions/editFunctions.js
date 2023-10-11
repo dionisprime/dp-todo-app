@@ -1,7 +1,40 @@
-const { STATUS, PRIORITY, STATUSES, PRIORITIES } = require('../constants.js');
-const { findTaskIndex, convertItemsToArray } = require('./helpFunctions.js');
-const Task = require('./Task.js');
+const { STATUS, PRIORITY, STATUSES, PRIORITIES } = require("../constants.js");
+const { findTaskIndex, convertItemsToArray } = require("./helpFunctions.js");
+const Task = require("./Task.js");
 
+//-------временная тестовая таска создания таск из jsonTask----------------------------------------------------------------------------
+
+const createTaskFromJson = (
+    todoList,
+    jsonTask
+    // status = STATUS.TODO,
+    // priority = PRIORITY.MEDIUM
+) => {
+    const { name, status, priority } = jsonTask;
+    const indexOfTask = findTaskIndex(todoList, name);
+
+    try {
+        if (name.length < 3 || name.length > 30) {
+            throw new Error(
+                "Ошибка: Имя задачи должно быть более 3х символов и менее 30"
+            );
+        }
+        if (indexOfTask != -1) {
+            throw new Error(
+                `Внимание: задача "${name}" уже есть в списке задач\n`
+            );
+        } else {
+            console.log(`задачи "${name}" нет в списке задач, добавляем\n`);
+            const task = new Task(name, status, priority);
+            todoList.push(task);
+            return `задачи "${jsonTask.name}" нет в списке задач, добавляем\n`;
+        }
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
+};
+//-----------------------------------------------------------------------------------
 const createTask = (
     todoList,
     taskName,
@@ -13,7 +46,7 @@ const createTask = (
     try {
         if (taskName.length < 3 || taskName.length > 30) {
             throw new Error(
-                'Ошибка: Имя задачи должно быть более 3х символов и менее 30'
+                "Ошибка: Имя задачи должно быть более 3х символов и менее 30"
             );
         }
         if (indexOfTask != -1) {
@@ -53,7 +86,7 @@ const changePriority = (todoList, taskName, priorityToChange) => {
     }
 };
 
-const deleteTask = (taskName, todoList) => {
+const deleteTask = (todoList, taskName) => {
     const indexOfTask = findTaskIndex(todoList, taskName);
 
     try {
@@ -75,4 +108,5 @@ module.exports = {
     changeStatus,
     changePriority,
     deleteTask,
+    createTaskFromJson,
 };

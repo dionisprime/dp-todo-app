@@ -44,10 +44,20 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
     res.send("Привет! По пути /tasks будет список задач!)");
 });
-app.get("/tasks", (req, res) => {
-    // const tasksString = simpleShowList(myTodoList);
-    // res.send(tasksString);
-    res.send(myTodoList);
+
+app.get("/tasks", async (req, res) => {
+    try {
+        const allTasksFromDB = await client
+            .db("todo-mongo-db")
+            .collection("tasks")
+            .find({})
+            .toArray();
+        console.log(allTasksFromDB);
+        res.send(allTasksFromDB);
+    } catch (error) {
+        console.log("Ошибка при получении задач из MongoDB:", error.message);
+        res.status(500).send("Ошибка при получении задач");
+    }
 });
 
 app.post("/tasks", async (req, res) => {

@@ -1,36 +1,9 @@
 require('dotenv').config();
-const { simpleShowList } = require('./functions/showFunctions.js');
-const todoListCreate = require('./functions/todoListCreate.js');
-const {
-    createTaskFromJson,
-    deleteTask,
-    changeStatus,
-    changePriority,
-} = require('./functions/editFunctions.js');
-const list = require('./todoList.json');
-
-const myTodoList = todoListCreate(list);
-
-//------------------------------------------
-// DB Connect
-const url = process.env.DB_CONNECTION_URL; // урл для сервиса с mongodb
-const { MongoClient } = require('mongodb'); // конструктор клиентов mongodb
-const client = new MongoClient(url); // создаем новый клиент для работы с базой
-(async function () {
-    try {
-        await client.connect(); // подключаемся к базе
-    } catch (error) {
-        console.log('Не удалось подключиться к MongoDB:', error.message);
-    }
-})();
-
-//------------------------------------------
-
-//------------------------------------------
+const client = require('./dbConnect.js');
 const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
 const port = process.env.PORT;
+const app = express();
+
 //------------------------------------------
 // для обработки CORS
 app.use((req, res, next) => {
@@ -41,7 +14,8 @@ app.use((req, res, next) => {
     next();
 });
 //------------------------------------------
-app.use(bodyParser.json());
+app.use(express.json()); // бодипарсер
+
 app.get('/', (req, res) => {
     res.send('Привет! По пути /tasks будет список задач!)');
 });
@@ -53,7 +27,6 @@ app.get('/tasks', async (req, res) => {
             .collection('tasks')
             .find({})
             .toArray();
-        console.log(allTasksFromDB);
         res.send(allTasksFromDB);
     } catch (error) {
         console.log('Ошибка при получении задач из MongoDB:', error.message);
@@ -63,16 +36,16 @@ app.get('/tasks', async (req, res) => {
 
 app.post('/tasks', async (req, res) => {
     const jsonTask = req.body;
-    const message = createTaskFromJson(myTodoList, jsonTask);
     try {
         await client
             .db('todo-mongo-db')
             .collection('tasks')
             .insertOne(jsonTask);
+        res.send('Добавляем таску');
     } catch (error) {
         console.log('Не удалось добавить задачу в MongoDB', error.message);
+        res.send('Не удалось добавить задачу в MongoDB', error.message);
     }
-    res.send(message);
 });
 
 app.put('/tasks/:name/status/:status', async (req, res) => {
@@ -144,8 +117,8 @@ app.delete('/tasks/:name', async (req, res) => {
         res.send(`Не удалось удалить задачу "${taskName}"`);
     }
 });
-//------------------------------------------
 
+//------------------------------------------
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });

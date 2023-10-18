@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { ObjectId } = require('mongodb');
-const Task = require('./TaskModel.js');
+const Task = require('./models/TaskModel.js');
+const User = require('./models/UserModel.js');
 const express = require('express');
 //------------------------------------------
 const port = process.env.PORT;
@@ -23,7 +24,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/tasks/:taskId', async (req, res) => {
-    // получение задачи из БД по id
+    // Получаем таску по id
     const taskId = req.params.taskId;
     try {
         const task = await Task.findById(taskId);
@@ -32,7 +33,18 @@ app.get('/tasks/:taskId', async (req, res) => {
             res.send('нет такой задачи');
         }
         if (task) {
-            res.json(task);
+            const { _id, name, status, priority, userId } = task;
+            const user = await User.findById(userId);
+
+            const resultTask = {
+                _id: _id,
+                name: name,
+                status: status,
+                priority: priority,
+                user: user,
+            };
+
+            res.json(resultTask);
         }
     } catch (error) {
         console.log('Ошибка при получении задачи из MongoDB:', error.message);
@@ -45,19 +57,28 @@ app.get('/tasks', async (req, res) => {
     try {
         const tasks = await Task.find({});
 
-        if (tasks) {
-            res.status(200).json(tasks);
-        } else {
-            res.status(404).json({ error: 'Задача не найдена' });
-        }
+        const results = await Promise.all(
+            tasks.map(async (task) => {
+                const user = await User.findById(task.userId);
+                return {
+                    _id: task._id,
+                    name: task.name,
+                    status: task.status,
+                    priority: task.priority,
+                    user: user,
+                };
+            })
+        );
+        res.status(200).json(results);
     } catch (error) {
         console.error('Ошибка при получении задачи:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-app.post('/tasks', async (req, res) => {
-    // создание задачи из тела запроса и добавление в БД
+app.post('/tasks/:userId', async (req, res) => {
+    // создание задачи из тела запроса и добавление в БД, userId, беру из параметров запроса
+    const userId = req.params.userId;
     const { name, status, priority } = req.body;
 
     try {
@@ -65,11 +86,12 @@ app.post('/tasks', async (req, res) => {
             name: name,
             status: status,
             priority: priority,
+            userId: new ObjectId(userId),
         });
         res.send(task);
     } catch (error) {
         console.log('Не удалось добавить задачу в MongoDB', error.message);
-        res.send('Не удалось добавить задачу в MongoDB', error.message);
+        res.send('Не удалось добавить задачу в MongoDB');
     }
 });
 

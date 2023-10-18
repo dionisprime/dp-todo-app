@@ -1,12 +1,11 @@
 const mongoose = require('./dbConnect.js');
 
-//Определение модели
 const taskSchema = new mongoose.Schema({
-    // определяем схему
     name: String,
     status: String,
     priority: String,
+    userId: { type: 'Object', ref: 'User' },
 });
-const Task = mongoose.model('Task', taskSchema); // создаем модель по схеме
+const Task = mongoose.model('Task', taskSchema);
 
 module.exports = Task;

@@ -1,10 +1,17 @@
-const mongoose = require('./dbConnect.js');
+const mongoose = require("./dbConnect.js");
 
 const userSchema = new mongoose.Schema({
-    username: String,
+    username: {
+        type: String,
+        required: true,
+    },
     age: Number,
-    email: String,
+    email: {
+        type: String,
+        unique: true,
+        required: true,
+    },
 });
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

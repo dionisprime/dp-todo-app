@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/UserModel.js");
+const { checkUserId } = require("../helper.js");
 
 router.get("/", async (req, res) => {
     // Получаем всех юзеров
@@ -22,6 +23,28 @@ router.get("/", async (req, res) => {
 router.get("/:userId", async (req, res) => {
     // Получаем юзера по id
     const userId = req.params.userId;
+    const authUserId = req.headers.authorization;
+
+    const checkResult = await checkUserId(userId, authUserId);
+
+    switch (checkResult) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "nouser":
+            return res
+                .status(401)
+                .json({ error: "Искомый юзер не найден в базе" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
+
     try {
         const user = await User.findById(userId);
         if (!user) {
@@ -59,7 +82,28 @@ router.post("/", async (req, res) => {
 router.put("/:userId/edit", async (req, res) => {
     // изменение данных юзера по айди
     const userId = req.params.userId;
+    const authUserId = req.headers.authorization;
+
     const { username, age, email } = req.body;
+
+    const checkResult = await checkUserId(userId, authUserId);
+
+    switch (checkResult) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "nouser":
+            return res.status(401).json({ error: "Изменяемый юзер не найден" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
+
     try {
         const updatedUser = await User.findByIdAndUpdate(
             userId,
@@ -85,6 +129,25 @@ router.put("/:userId/edit", async (req, res) => {
 router.delete("/:userId", async (req, res) => {
     // удаление юзера по айди
     const userId = req.params.userId;
+    const authUserId = req.headers.authorization;
+
+    const checkResult = await checkUserId(userId, authUserId);
+
+    switch (checkResult) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "nouser":
+            return res.status(401).json({ error: "Удаляемый юзер не найден" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
 
     try {
         const result = await User.findByIdAndDelete(userId);

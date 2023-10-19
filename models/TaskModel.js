@@ -1,11 +1,12 @@
-const mongoose = require('./dbConnect.js');
+const mongoose = require("./dbConnect.js");
 
 const taskSchema = new mongoose.Schema({
     name: String,
     status: String,
     priority: String,
-    userId: { type: 'Object', ref: 'User' },
+    userId: { type: "ObjectId", ref: "User" },
+    // userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
-const Task = mongoose.model('Task', taskSchema);
+const Task = mongoose.model("Task", taskSchema);
 
 module.exports = Task;

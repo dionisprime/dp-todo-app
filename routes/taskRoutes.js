@@ -1,12 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const { ObjectId } = require("mongodb");
+const { findUserIdFromTaskInDataBase } = require("../helper.js");
 const Task = require("../models/TaskModel.js");
 const User = require("../models/UserModel.js");
 
 router.get("/:taskId", async (req, res) => {
     // Получаем таску по id
     const taskId = req.params.taskId;
+    const authUserId = req.headers.authorization;
+
+    const userIdFromTask = await findUserIdFromTaskInDataBase(
+        taskId,
+        authUserId
+    );
+
+    switch (userIdFromTask) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "notask":
+            return res.status(401).json({ error: "Задача не найдена" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
+
     try {
         const task = await Task.findById(taskId);
         if (!task) {
@@ -34,13 +58,25 @@ router.get("/:taskId", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-    // Получаем все таски
+    // Получаем все таски для конкретного пользователя с учётом его авторизации
+    const authUserId = req.headers.authorization;
+
+    if (!authUserId) {
+        // Если нет id юзера для авторизации, возвращаем ошибку 401 (Unauthorized)
+        return res
+            .status(401)
+            .json({ error: "Пользователь не авторизован, доступ запрещен" });
+    }
+
     try {
-        const tasks = await Task.find({});
+        const tasks = await Task.find({
+            userId: authUserId,
+        });
 
         const results = await Promise.all(
             tasks.map(async (task) => {
                 const user = await User.findById(task.userId);
+
                 return {
                     _id: task._id,
                     name: task.name,
@@ -52,7 +88,7 @@ router.get("/", async (req, res) => {
         );
         res.status(200).json(results);
     } catch (error) {
-        console.error("Ошибка при получении задачи:", error);
+        console.error("Ошибка при получении задачи: ", error);
         res.status(500).json({ error: "Ошибка сервера" });
     }
 });
@@ -82,6 +118,29 @@ router.put("/:taskId/status/:status", async (req, res) => {
     // изменение статуса задачи по айди
     const taskId = req.params.taskId;
     const taskStatus = req.params.status;
+    const authUserId = req.headers.authorization;
+
+    const userIdFromTask = await findUserIdFromTaskInDataBase(
+        taskId,
+        authUserId
+    );
+
+    switch (userIdFromTask) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "notask":
+            return res.status(401).json({ error: "Задача не найдена" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
+
     try {
         const updatedTask = await Task.findByIdAndUpdate(
             taskId,
@@ -106,6 +165,29 @@ router.put("/:taskId/priority/:priority", async (req, res) => {
     // изменение приоритета задачи по айди
     const taskId = req.params.taskId;
     const taskPriority = req.params.priority;
+    const authUserId = req.headers.authorization;
+
+    const userIdFromTask = await findUserIdFromTaskInDataBase(
+        taskId,
+        authUserId
+    );
+
+    switch (userIdFromTask) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "notask":
+            return res.status(401).json({ error: "Задача не найдена" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
+
     try {
         const updatedTask = await Task.findByIdAndUpdate(
             taskId,
@@ -129,6 +211,28 @@ router.put("/:taskId/priority/:priority", async (req, res) => {
 router.delete("/:taskId", async (req, res) => {
     // удаление задачи по айди
     const taskId = req.params.taskId;
+    const authUserId = req.headers.authorization;
+
+    const userIdFromTask = await findUserIdFromTaskInDataBase(
+        taskId,
+        authUserId
+    );
+
+    switch (userIdFromTask) {
+        case "notauth":
+            return res.status(401).json({
+                error: "Пользователь не авторизован, доступ запрещен",
+            });
+        case "notask":
+            return res.status(401).json({ error: "Задача не найдена" });
+        case "restrict":
+            return res
+                .status(401)
+                .json({ error: "Другой пользователь. Доступ запрещен" });
+        default:
+            console.log("Проверки пройдены");
+            break;
+    }
 
     try {
         const result = await Task.findByIdAndDelete(taskId);

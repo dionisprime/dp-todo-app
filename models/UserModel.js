@@ -1,4 +1,4 @@
-const mongoose = require("./dbConnect.js");
+const mongoose = require('./dbConnect.js');
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true,
     },
+    roles: String,
 });
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

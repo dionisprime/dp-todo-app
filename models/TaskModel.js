@@ -1,7 +1,10 @@
 const mongoose = require('./dbConnect.js');
 
 const taskSchema = new mongoose.Schema({
-    name: String,
+    name: {
+        type: String,
+        required: true,
+    },
     status: String,
     priority: String,
     deadline: Date,

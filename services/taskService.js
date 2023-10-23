@@ -1,12 +1,19 @@
 const Task = require('../models/TaskModel.js');
+const { DEFAULT_DEADLINE, STATUS, PRIORITY } = require('../constants.js');
 
-const createTask = ({ name, status, priority, userId, deadline }) => {
+const createTask = ({
+    name,
+    status = STATUS.TODO,
+    priority = PRIORITY.MEDIUM,
+    userId,
+    deadline = DEFAULT_DEADLINE,
+}) => {
     return Task.create({
-        name: name,
-        status: status,
-        priority: priority,
-        deadline: deadline || new Date('2024-12-31'),
-        userId: userId,
+        name,
+        status,
+        priority,
+        deadline,
+        userId,
     });
 };
 
@@ -17,12 +24,7 @@ const deleteTask = (taskId) => {
 const editTask = (taskId, { name, status, priority, deadline }) => {
     return Task.findByIdAndUpdate(
         taskId,
-        {
-            name: name,
-            status: status,
-            priority: priority,
-            deadline: deadline,
-        },
+        { name, status, priority, deadline },
         { new: true }
     );
 };

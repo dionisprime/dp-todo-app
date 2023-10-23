@@ -1,3 +1,4 @@
+const { DEFAULT_ROLE } = require('../constants.js');
 const User = require('../models/UserModel.js');
 
 const getAllUsers = () => {
@@ -8,12 +9,12 @@ const getUserById = (userId) => {
     return User.findById(userId);
 };
 
-const addUser = ({ username, age, email, roles }) => {
+const addUser = ({ username, age, email, roles = DEFAULT_ROLE }) => {
     return User.create({
-        username: username,
-        age: age,
-        email: email,
-        roles: roles || 'user',
+        username,
+        age,
+        email,
+        roles,
     });
 };
 
@@ -21,9 +22,9 @@ const editUser = (userId, { username, age, email }) => {
     return User.findByIdAndUpdate(
         userId,
         {
-            username: username,
-            age: age,
-            email: email,
+            username,
+            age,
+            email,
         },
         { new: true }
     );

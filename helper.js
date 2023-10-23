@@ -1,27 +1,20 @@
-const Task = require("./models/TaskModel.js");
-const User = require("./models/UserModel.js");
+const { getOneTaskById } = require('./services/taskService.js');
+const { getUserById } = require('./services/userService.js');
+const { ERROR_MESSAGE } = require('./constants.js');
 
-async function findUserIdFromTaskInDataBase(taskId, authUserId) {
+async function checkUserIdFromTask(taskId, authUserId) {
     if (!authUserId) {
-        return "notauth";
+        return ERROR_MESSAGE.NOT_AUTHORIZED;
     }
 
     try {
-        const task = await Task.findOne({ _id: taskId });
+        const task = await getOneTaskById(taskId);
 
-        if (!task) {
-            return "notask";
-            // return "Задача не найдена";
-        }
+        const userIdIsMatch = task.userId.toString() === authUserId;
 
-        const userId = task.userId.toString();
-
-        if (userId !== authUserId) {
-            // Доступ запрещен, userId не совпадает с заголовком Authorization
-            return "restrict";
-        } else {
-            return "granted";
-        }
+        return userIdIsMatch
+            ? ERROR_MESSAGE.ACCESS_GRANTED
+            : ERROR_MESSAGE.ID_NOT_MATCH;
     } catch (error) {
         console.log(error);
     }
@@ -29,27 +22,32 @@ async function findUserIdFromTaskInDataBase(taskId, authUserId) {
 
 async function checkUserId(userId, authUserId) {
     if (!authUserId) {
-        return "notauth";
+        return ERROR_MESSAGE.NOT_AUTHORIZED;
     }
 
     try {
-        const user = await User.findOne({ _id: userId });
+        const user = await getUserById(userId);
 
-        if (!user) {
-            return "nouser";
-        }
+        const userIdIsMatch = user._id.toString() === authUserId;
+        console.log('authUserId: ', authUserId);
+        console.log('user._id.toString(): ', user._id.toString());
 
-        const userIdString = user._id.toString();
-
-        if (userIdString !== authUserId) {
-            // Доступ запрещен, userId не совпадает с заголовком Authorization
-            return "restrict";
-        } else {
-            return "granted";
-        }
+        return userIdIsMatch
+            ? ERROR_MESSAGE.ACCESS_GRANTED
+            : ERROR_MESSAGE.ID_NOT_MATCH;
     } catch (error) {
         console.log(error);
     }
 }
 
-module.exports = { findUserIdFromTaskInDataBase, checkUserId };
+const checkAuth = (userIdFromTask) => {
+    if (userIdFromTask === ERROR_MESSAGE.NOT_AUTHORIZED) {
+        throw new Error(ERROR_MESSAGE.NOT_AUTHORIZED);
+    }
+
+    if (userIdFromTask === ERROR_MESSAGE.ID_NOT_MATCH) {
+        throw new Error(ERROR_MESSAGE.ACCESS_DENIED);
+    }
+};
+
+module.exports = { checkUserIdFromTask, checkUserId, checkAuth };

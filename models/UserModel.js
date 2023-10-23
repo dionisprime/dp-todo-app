@@ -11,7 +11,10 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true,
     },
-    roles: String,
+    roles: {
+        type: Array,
+        required: true,
+    },
 });
 const User = mongoose.model('User', userSchema);
 

@@ -1,6 +1,9 @@
-// DB Connect
+const { DB_CONNECTION_URL } = require('../constants.js');
+
 const mongoose = require('mongoose');
-const url = process.env.DB_CONNECTION_URL; // урл для сервиса с mongodb
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(DB_CONNECTION_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
 
 module.exports = mongoose;

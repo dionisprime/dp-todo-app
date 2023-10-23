@@ -2,7 +2,7 @@ const PORT = process.env.PORT || 3001;
 const DB_CONNECTION_URL = process.env.DB_CONNECTION_URL;
 const ONE_MONTH = 2629746000;
 const DEFAULT_DEADLINE = new Date(Date.now() + ONE_MONTH);
-const DEFAULT_ROLE = ['user'];
+const DEFAULT_ROLES = ['user'];
 
 const STATUS = {
     TODO: 'ToDo',
@@ -27,7 +27,9 @@ const ERROR_MESSAGE = {
     DELETE__TASK_ERROR: 'Не удалось удалить задачу',
 
     USER_NOT_FOUND: 'Пользователь не найден',
+    USERS_NOT_FOUND: 'Пользователи не найдены',
     GET_USER_ERROR: 'Ошибка при получении пользователя',
+    GET_USERS_ERROR: 'Ошибка при получении пользователей',
     ADD_USER_ERROR: 'Не удалось добавить пользователя',
     EDIT_USER_ERROR: 'Не удалось обновить пользователя',
     DELETE_USER_ERROR: 'Не удалось удалить пользователя',
@@ -47,5 +49,5 @@ module.exports = {
     DB_CONNECTION_URL,
     DEFAULT_DEADLINE,
     ERROR_MESSAGE,
-    DEFAULT_ROLE,
+    DEFAULT_ROLES,
 };

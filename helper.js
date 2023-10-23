@@ -2,52 +2,48 @@ const { getOneTaskById } = require('./services/taskService.js');
 const { getUserById } = require('./services/userService.js');
 const { ERROR_MESSAGE } = require('./constants.js');
 
-async function checkUserIdFromTask(taskId, authUserId) {
+async function tasksAccessCheck(taskId, authUserId) {
     if (!authUserId) {
-        return ERROR_MESSAGE.NOT_AUTHORIZED;
-    }
-
-    try {
-        const task = await getOneTaskById(taskId);
-
-        const userIdIsMatch = task.userId.toString() === authUserId;
-
-        return userIdIsMatch
-            ? ERROR_MESSAGE.ACCESS_GRANTED
-            : ERROR_MESSAGE.ID_NOT_MATCH;
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-async function checkUserId(userId, authUserId) {
-    if (!authUserId) {
-        return ERROR_MESSAGE.NOT_AUTHORIZED;
-    }
-
-    try {
-        const user = await getUserById(userId);
-
-        const userIdIsMatch = user._id.toString() === authUserId;
-        console.log('authUserId: ', authUserId);
-        console.log('user._id.toString(): ', user._id.toString());
-
-        return userIdIsMatch
-            ? ERROR_MESSAGE.ACCESS_GRANTED
-            : ERROR_MESSAGE.ID_NOT_MATCH;
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const checkAuth = (userIdFromTask) => {
-    if (userIdFromTask === ERROR_MESSAGE.NOT_AUTHORIZED) {
         throw new Error(ERROR_MESSAGE.NOT_AUTHORIZED);
     }
 
-    if (userIdFromTask === ERROR_MESSAGE.ID_NOT_MATCH) {
+    const task = await getOneTaskById(taskId);
+
+    if (!task) {
+        throw new Error(ERROR_MESSAGE.TASK_NOT_FOUND);
+    }
+
+    const userIdIsMatch = task.userId.toString() === authUserId;
+
+    if (!userIdIsMatch) {
         throw new Error(ERROR_MESSAGE.ACCESS_DENIED);
     }
-};
 
-module.exports = { checkUserIdFromTask, checkUserId, checkAuth };
+    if (userIdIsMatch) {
+        return 'Доступ разрешен';
+    }
+}
+
+async function userAccessCheck(userId, authUserId) {
+    if (!authUserId) {
+        throw new Error(ERROR_MESSAGE.NOT_AUTHORIZED);
+    }
+
+    const user = await getUserById(userId);
+
+    if (!user) {
+        throw new Error(ERROR_MESSAGE.USER_NOT_FOUND);
+    }
+
+    const userIdIsMatch = user._id.toString() === authUserId;
+
+    if (!userIdIsMatch) {
+        throw new Error(ERROR_MESSAGE.ACCESS_DENIED);
+    }
+
+    if (userIdIsMatch) {
+        return 'Доступ разрешен';
+    }
+}
+
+module.exports = { tasksAccessCheck, userAccessCheck };

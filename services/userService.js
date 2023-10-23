@@ -1,4 +1,4 @@
-const { DEFAULT_ROLE } = require('../constants.js');
+const { DEFAULT_ROLES } = require('../constants.js');
 const User = require('../models/UserModel.js');
 
 const getAllUsers = () => {
@@ -9,7 +9,7 @@ const getUserById = (userId) => {
     return User.findById(userId);
 };
 
-const addUser = ({ username, age, email, roles = DEFAULT_ROLE }) => {
+const addUser = ({ username, age, email, roles = DEFAULT_ROLES }) => {
     return User.create({
         username,
         age,

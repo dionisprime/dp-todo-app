@@ -1,4 +1,4 @@
-const { DEFAULT_DEADLINE, DEFAULT_ROLE } = require('../constants.js');
+const { DEFAULT_DEADLINE, DEFAULT_ROLES } = require('../constants.js');
 
 module.exports = {
     async up(db, client) {
@@ -8,7 +8,7 @@ module.exports = {
 
         await db
             .collection('users')
-            .updateMany({}, { $set: { roles: DEFAULT_ROLE } });
+            .updateMany({}, { $set: { roles: DEFAULT_ROLES } });
     },
 
     async down(db, client) {

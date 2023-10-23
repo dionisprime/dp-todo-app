@@ -1,5 +1,6 @@
 const Task = require('../models/TaskModel.js');
 const { DEFAULT_DEADLINE, STATUS, PRIORITY } = require('../constants.js');
+const { getUserById } = require('../services/userService.js');
 
 const createTask = ({
     name,
@@ -33,10 +34,26 @@ const getOneTaskById = (taskId) => {
     return Task.findById(taskId);
 };
 
-const getAllTasks = (authUserId) => {
-    return Task.find({
+const getAllTasks = async (authUserId) => {
+    const userTasks = await Task.find({
         userId: authUserId,
     });
+
+    console.log('userTasks: ', userTasks);
+    return await Promise.all(
+        userTasks.map(async (task) => {
+            const user = await getUserById(task.userId);
+
+            return {
+                _id: task._id,
+                name: task.name,
+                status: task.status,
+                deadline: task.deadline,
+                priority: task.priority,
+                user: user,
+            };
+        })
+    );
 };
 
 module.exports = {

@@ -1,11 +1,10 @@
-const Task = require("../models/TaskModel.js");
+const Task = require('../models/TaskModel.js');
 const {
     DEFAULT_DEADLINE,
     STATUS,
     PRIORITY,
     ERROR_MESSAGE,
-} = require("../constants.js");
-const { getUserById } = require("../services/userService.js");
+} = require('../constants.js');
 
 const createTask = ({
     name,
@@ -38,30 +37,15 @@ const editTask = (taskId, { name, status, priority, deadline }) => {
 };
 
 const getOneTaskById = (taskId) => {
-    return Task.findById(taskId);
+    return Task.findById(taskId).populate('userId');
 };
 
 const getAllTasks = async (authUserId) => {
     const userTasks = await Task.find({
         userId: authUserId,
-    });
+    }).populate('userId');
 
-    console.log("userTasks: ", userTasks);
-    return await Promise.all(
-        userTasks.map(async (task) => {
-            const user = await getUserById(task.userId);
-
-            return {
-                _id: task._id,
-                name: task.name,
-                status: task.status,
-                deadline: task.deadline,
-                priority: task.priority,
-                subtasks: task.subtasks,
-                user: user,
-            };
-        })
-    );
+    return userTasks;
 };
 
 //---------------------
@@ -84,7 +68,6 @@ const createSubtask = async (
     { subtaskName, description, status, createdAt }
 ) => {
     const task = await Task.findById(taskId);
-    console.log(task);
     task.subtasks.push({ subtaskName, description, status, createdAt });
     return await task.save();
 };
@@ -95,10 +78,8 @@ const deleteSubtask = async (taskId, subtaskId) => {
         (subtask) => subtask._id.toString() === subtaskId
     );
 
-    console.log(subtaskToDelete);
-
     if (!subtaskToDelete) {
-        return "Подзадача не найдена";
+        return 'Подзадача не найдена';
     }
 
     if (subtaskToDelete) {

@@ -13,7 +13,7 @@ async function tasksAccessCheck(taskId, authUserId) {
         throw new Error(ERROR_MESSAGE.TASK_NOT_FOUND);
     }
 
-    const userIdIsMatch = task.userId.toString() === authUserId;
+    const userIdIsMatch = task.userId._id.toString() === authUserId;
 
     if (!userIdIsMatch) {
         throw new Error(ERROR_MESSAGE.ACCESS_DENIED);

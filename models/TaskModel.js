@@ -1,5 +1,5 @@
-const mongoose = require("../services/dbConnect.js");
-const { STATUS } = require("../constants.js");
+const mongoose = require('../services/dbConnect.js');
+const { STATUS } = require('../constants.js');
 
 const taskSchema = new mongoose.Schema({
     name: {
@@ -9,8 +9,7 @@ const taskSchema = new mongoose.Schema({
     status: String,
     priority: String,
     deadline: Date,
-    userId: { type: "ObjectId", ref: "User" },
-    // subtasks: String,
+    userId: { type: 'ObjectId', ref: 'User' },
     subtasks: [
         {
             subtaskName: {
@@ -23,6 +22,6 @@ const taskSchema = new mongoose.Schema({
         },
     ],
 });
-const Task = mongoose.model("Task", taskSchema);
+const Task = mongoose.model('Task', taskSchema);
 
 module.exports = Task;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { userAccessCheck } = require('../helper.js');
+const { userAccessCheck } = require('../services/accessCheck.js');
 const {
     getAllUsers,
     getUserById,

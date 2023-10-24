@@ -1,6 +1,6 @@
-const { getOneTaskById } = require('./services/taskService.js');
-const { getUserById } = require('./services/userService.js');
-const { ERROR_MESSAGE } = require('./constants.js');
+const { getOneTaskById } = require('./taskService.js');
+const { getUserById } = require('./userService.js');
+const { ERROR_MESSAGE } = require('../constants.js');
 
 async function tasksAccessCheck(taskId, authUserId) {
     if (!authUserId) {

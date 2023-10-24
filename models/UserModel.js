@@ -1,4 +1,4 @@
-const mongoose = require('./dbConnect.js');
+const mongoose = require('../services/dbConnect.js');
 
 const userSchema = new mongoose.Schema({
     username: {

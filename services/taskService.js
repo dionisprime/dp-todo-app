@@ -1,13 +1,25 @@
-const Task = require('../models/TaskModel.js');
+const Task = require("../models/TaskModel.js");
 const {
     DEFAULT_DEADLINE,
     STATUS,
     PRIORITY,
     ERROR_MESSAGE,
-} = require('../constants.js');
+} = require("../constants.js");
+
+const getOneTaskById = (taskId) => {
+    return Task.findById(taskId).populate("userId");
+};
+
+const getAllTasks = async (authUserId) => {
+    const userTasks = await Task.find({
+        userId: authUserId,
+    }).populate("userId");
+
+    return userTasks;
+};
 
 const createTask = ({
-    name,
+    taskName,
     status = STATUS.TODO,
     priority = PRIORITY.MEDIUM,
     userId,
@@ -15,7 +27,7 @@ const createTask = ({
     subtasks,
 }) => {
     return Task.create({
-        name,
+        taskName,
         status,
         priority,
         deadline,
@@ -28,24 +40,12 @@ const deleteTask = (taskId) => {
     return Task.findByIdAndDelete(taskId);
 };
 
-const editTask = (taskId, { name, status, priority, deadline }) => {
+const editTask = (taskId, { taskName, status, priority, deadline }) => {
     return Task.findByIdAndUpdate(
         taskId,
-        { name, status, priority, deadline },
+        { taskName, status, priority, deadline },
         { new: true }
     );
-};
-
-const getOneTaskById = (taskId) => {
-    return Task.findById(taskId).populate('userId');
-};
-
-const getAllTasks = async (authUserId) => {
-    const userTasks = await Task.find({
-        userId: authUserId,
-    }).populate('userId');
-
-    return userTasks;
 };
 
 //---------------------
@@ -79,7 +79,7 @@ const deleteSubtask = async (taskId, subtaskId) => {
     );
 
     if (!subtaskToDelete) {
-        return 'Подзадача не найдена';
+        return "Подзадача не найдена";
     }
 
     if (subtaskToDelete) {

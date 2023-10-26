@@ -36,6 +36,12 @@ const ERROR_MESSAGE = {
     EDIT_USER_ERROR: "Не удалось обновить пользователя",
     DELETE_USER_ERROR: "Не удалось удалить пользователя",
 
+    PLAN_NOT_FOUND: "План не найден",
+    GET_PLAN_ERROR: "Ошибка при получении плана",
+    ADD_PLAN_ERROR: "Не удалось добавить план",
+    EDIT_PLAN_ERROR: "Не удалось обновить план",
+    DELETE_PLAN_ERROR: "Не удалось удалить план",
+
     ACCESS_GRANTED: "Доступ разрешен",
     ACCESS_DENIED: "Другой пользователь. Доступ запрещен",
     ID_NOT_MATCH: "ID не совпадает",

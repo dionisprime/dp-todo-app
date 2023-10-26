@@ -1,6 +1,7 @@
-const { getOneTaskById } = require('./taskService.js');
-const { getUserById } = require('./userService.js');
-const { ERROR_MESSAGE } = require('../constants.js');
+const { getOneTaskById } = require("./taskService.js");
+const { getOnePlanById } = require("./planService.js");
+const { getUserById } = require("./userService.js");
+const { ERROR_MESSAGE } = require("../constants.js");
 
 async function tasksAccessCheck(taskId, authUserId) {
     if (!authUserId) {
@@ -8,7 +9,7 @@ async function tasksAccessCheck(taskId, authUserId) {
     }
 
     const task = await getOneTaskById(taskId);
-
+    console.log("task", task);
     if (!task) {
         throw new Error(ERROR_MESSAGE.TASK_NOT_FOUND);
     }
@@ -20,7 +21,18 @@ async function tasksAccessCheck(taskId, authUserId) {
     }
 
     if (userIdIsMatch) {
-        return 'Доступ разрешен';
+        return "Доступ разрешен";
+    }
+}
+
+async function planAccessCheck(planId, authUserId) {
+    if (!authUserId) {
+        throw new Error(ERROR_MESSAGE.NOT_AUTHORIZED);
+    }
+
+    const plan = await getOnePlanById(planId);
+    if (!plan) {
+        throw new Error(ERROR_MESSAGE.PLAN_NOT_FOUND);
     }
 }
 
@@ -42,8 +54,8 @@ async function userAccessCheck(userId, authUserId) {
     }
 
     if (userIdIsMatch) {
-        return 'Доступ разрешен';
+        return "Доступ разрешен";
     }
 }
 
-module.exports = { tasksAccessCheck, userAccessCheck };
+module.exports = { tasksAccessCheck, userAccessCheck, planAccessCheck };

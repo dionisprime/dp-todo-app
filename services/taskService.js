@@ -6,6 +6,69 @@ const {
     ERROR_MESSAGE,
 } = require("../constants.js");
 
+const service = (filters, sortBy, sortOrder) => {
+    const query = Task.find();
+
+    if (filters.taskName) {
+        query.where("taskName", filters.taskName);
+    }
+
+    if (filters.status) {
+        query.where("status", filters.status);
+    }
+
+    if (filters.priority) {
+        query.where("priority", filters.priority);
+    }
+
+    if (filters.deadline) {
+        query.where("deadline", filters.deadline);
+    }
+
+    if (filters.userId) {
+        query.where("userId", filters.userId);
+    }
+
+    const sortOptions = {};
+
+    if (sortBy && sortOrder) {
+        sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+        query.sort(sortOptions);
+    }
+
+    return query.exec();
+};
+
+const getTodayTasks = async () => {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0); // Устанавливаем время на начало дня
+
+    const query = Task.find();
+    query.where("deadline", today);
+
+    const taskCount = await Task.countDocuments({ deadline: today });
+    console.log("taskCount: ", taskCount);
+
+    if (taskCount === 0) {
+        return ERROR_MESSAGE.NO_TASKS_TODAY;
+    }
+    return query.exec();
+};
+
+const getNext7DaysTasks = async () => {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0); // Устанавливаем время на начало дня
+
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    const tasks = await Task.find({
+        deadline: { $gte: today, $lte: nextWeek },
+    }).exec();
+
+    return tasks;
+};
+
 const getOneTaskById = (taskId) => {
     return Task.findById(taskId).populate("userId");
 };
@@ -121,4 +184,7 @@ module.exports = {
     createSubtask,
     deleteSubtask,
     getOneSubtaskById,
+    service,
+    getTodayTasks,
+    getNext7DaysTasks,
 };

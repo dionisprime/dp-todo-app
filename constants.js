@@ -21,7 +21,9 @@ const PRIORITIES = Object.values(PRIORITY);
 const ERROR_MESSAGE = {
     NOT_AUTHORIZED: "Пользователь не авторизован, доступ запрещен",
     TASK_NOT_FOUND: "Задача не найдена",
+    NO_TASKS_TODAY: "Нет задач на сегодня",
     GET_TASK_ERROR: "Ошибка при получении задачи",
+    GET_TASKS_ERROR: "Ошибка при получении задач",
     ADD_TASK_ERROR: "Не удалось добавить задачу",
     EDIT_TASK_ERROR: "Не удалось обновить задачу",
     DELETE__TASK_ERROR: "Не удалось удалить задачу",

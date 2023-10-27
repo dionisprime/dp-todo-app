@@ -13,8 +13,56 @@ const {
     createSubtask,
     deleteSubtask,
     getOneSubtaskById,
+    service,
+    getTodayTasks,
+    getNext7DaysTasks,
 } = require("../services/taskService.js");
-// const { getUserById } = require('../services/userService.js');
+
+router.get("/filter-sort", async (req, res) => {
+    // const authUserId = req.headers.authorization;
+    const { taskName, priority, status, deadline, userId, sortBy, sortOrder } =
+        req.query;
+    const filters = {
+        taskName,
+        priority,
+        status,
+        deadline,
+        userId,
+    };
+
+    // if (!authUserId) {
+    //     return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+    // }
+
+    try {
+        // const results = await getAllTasks(authUserId);
+        const tasks = await service(filters, sortBy, sortOrder);
+        res.status(200).json(tasks);
+    } catch (error) {
+        console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
+        res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
+    }
+});
+
+router.get("/today", async (req, res) => {
+    try {
+        const todayTasks = await getTodayTasks();
+        res.status(200).json(todayTasks);
+    } catch (error) {
+        console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
+        res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
+    }
+});
+
+router.get("/next7days", async (req, res) => {
+    try {
+        const next7days = await getNext7DaysTasks();
+        res.status(200).json(next7days);
+    } catch (error) {
+        console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
+        res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
+    }
+});
 
 router.get("/", async (req, res) => {
     const authUserId = req.headers.authorization;
@@ -27,8 +75,8 @@ router.get("/", async (req, res) => {
         const results = await getAllTasks(authUserId);
         res.status(200).json(results);
     } catch (error) {
-        console.error(ERROR_MESSAGE.GET_TASK_ERROR, error.message);
-        res.status(500).json({ error: ERROR_MESSAGE.GET_TASK_ERROR });
+        console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
+        res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
     }
 });
 router.get("/:taskId", async (req, res) => {

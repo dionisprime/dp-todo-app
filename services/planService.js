@@ -2,6 +2,47 @@ const Plan = require("../models/PlanModel.js");
 const { ERROR_MESSAGE } = require("../constants.js");
 const mongoose = require("mongoose");
 
+const service = (filters, sortBy, sortOrder) => {
+    const query = Plan.find();
+
+    if (filters.planName) {
+        query.where("planName", filters.planName);
+    }
+
+    if (filters.tasksId) {
+        query.where("tasksId", filters.tasksId);
+    }
+
+    // query.populate("tasksId");
+
+    const sortOptions = {};
+    if (sortBy && sortOrder) {
+        sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+        query.sort(sortOptions);
+    }
+
+    // if (filters.taskName) {
+    //     query.populate({
+    //         path: "tasksId",
+    //         match: { taskName: filters.taskName },
+    //     });
+    //     query.where({ tasksId: { $ne: [] } });
+    // }
+
+    // if (filters.taskStatus) {
+    //     query.populate({
+    //         path: "tasksId",
+    //         match: { status: filters.taskStatus },
+    //         // options: {
+    //         //     match: { status: { $exists: true } },
+    //         //     select: "status",
+    //         // },
+    //     });
+    // }
+
+    return query.exec();
+};
+
 const getAllPlans = async (authUserId) => {
     return Plan.find().populate("tasksId");
 };
@@ -41,4 +82,5 @@ module.exports = {
     deletePlan,
     editPlan,
     getTaskCount,
+    service,
 };

@@ -10,7 +10,34 @@ const {
     createPlan,
     editPlan,
     deletePlan,
+    service,
 } = require("../services/planService.js");
+
+router.get("/filter-sort", async (req, res) => {
+    // const authUserId = req.headers.authorization;
+
+    const { planName, tasksId, taskStatus, taskName, sortBy, sortOrder } =
+        req.query;
+    const filters = {
+        planName,
+        tasksId,
+        taskStatus,
+        taskName,
+        sortBy,
+        sortOrder,
+    };
+    // if (!authUserId) {
+    //     return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+    // }
+
+    try {
+        const plans = await service(filters, sortBy, sortOrder);
+        res.status(200).json(plans);
+    } catch (error) {
+        console.error(ERROR_MESSAGE.GET_PLAN_ERROR, error.message);
+        res.status(500).json({ error: ERROR_MESSAGE.GET_PLAN_ERROR });
+    }
+});
 
 router.get("/", async (req, res) => {
     const authUserId = req.headers.authorization;

@@ -9,7 +9,6 @@ async function tasksAccessCheck(taskId, authUserId) {
     }
 
     const task = await getOneTaskById(taskId);
-    console.log("task", task);
     if (!task) {
         throw new Error(ERROR_MESSAGE.TASK_NOT_FOUND);
     }

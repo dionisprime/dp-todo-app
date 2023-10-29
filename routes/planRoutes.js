@@ -1,7 +1,7 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const { ERROR_MESSAGE } = require("../constants.js");
-const { planAccessCheck } = require("../services/accessCheck.js");
+const { ERROR_MESSAGE } = require('../constants.js');
+const { planAccessCheck } = require('../services/accessCheck.js');
 
 const {
     getOnePlanById,
@@ -10,15 +10,26 @@ const {
     createPlan,
     editPlan,
     deletePlan,
-    service,
-} = require("../services/planService.js");
+    getFilterSortedPlan,
+} = require('../services/planService.js');
 
-router.get("/filter-sort", async (req, res) => {
-    // const authUserId = req.headers.authorization;
+router.get('/filter-sort', async (req, res) => {
+    const authUserId = req.headers.authorization;
+    if (!authUserId) {
+        return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+    }
 
-    const { planName, tasksId, taskStatus, taskName, sortBy, sortOrder } =
-        req.query;
+    const {
+        planId,
+        planName,
+        tasksId,
+        taskStatus,
+        taskName,
+        sortBy,
+        sortOrder,
+    } = req.query;
     const filters = {
+        planId,
         planName,
         tasksId,
         taskStatus,
@@ -26,12 +37,9 @@ router.get("/filter-sort", async (req, res) => {
         sortBy,
         sortOrder,
     };
-    // if (!authUserId) {
-    //     return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
-    // }
 
     try {
-        const plans = await service(filters, sortBy, sortOrder);
+        const plans = await getFilterSortedPlan(filters, sortBy, sortOrder);
         res.status(200).json(plans);
     } catch (error) {
         console.error(ERROR_MESSAGE.GET_PLAN_ERROR, error.message);
@@ -39,7 +47,7 @@ router.get("/filter-sort", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
     const authUserId = req.headers.authorization;
 
     if (!authUserId) {
@@ -55,7 +63,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/:planId", async (req, res) => {
+router.get('/:planId', async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
 
@@ -72,7 +80,7 @@ router.get("/:planId", async (req, res) => {
     }
 });
 
-router.get("/:planId/taskCount", async (req, res) => {
+router.get('/:planId/taskCount', async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
 
@@ -89,7 +97,7 @@ router.get("/:planId/taskCount", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
     const { planName, tasksId } = req.body;
     const newPlan = { planName, tasksId };
 
@@ -105,7 +113,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.put("/:planId/", async (req, res) => {
+router.put('/:planId/', async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
     const { planName, tasksId } = req.body;
@@ -125,7 +133,7 @@ router.put("/:planId/", async (req, res) => {
     }
 });
 
-router.delete("/:planId", async (req, res) => {
+router.delete('/:planId', async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
 

@@ -1,8 +1,8 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const { ERROR_MESSAGE } = require("../constants.js");
+const { ERROR_MESSAGE } = require('../constants.js');
 
-const { tasksAccessCheck } = require("../services/accessCheck.js");
+const { tasksAccessCheck } = require('../services/accessCheck.js');
 const {
     createTask,
     deleteTask,
@@ -13,13 +13,17 @@ const {
     createSubtask,
     deleteSubtask,
     getOneSubtaskById,
-    service,
+    getFilterSortedTasks,
     getTodayTasks,
     getNext7DaysTasks,
-} = require("../services/taskService.js");
+} = require('../services/taskService.js');
 
-router.get("/filter-sort", async (req, res) => {
-    // const authUserId = req.headers.authorization;
+router.get('/filter-sort', async (req, res) => {
+    const authUserId = req.headers.authorization;
+    if (!authUserId) {
+        return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+    }
+
     const { taskName, priority, status, deadline, userId, sortBy, sortOrder } =
         req.query;
     const filters = {
@@ -30,13 +34,8 @@ router.get("/filter-sort", async (req, res) => {
         userId,
     };
 
-    // if (!authUserId) {
-    //     return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
-    // }
-
     try {
-        // const results = await getAllTasks(authUserId);
-        const tasks = await service(filters, sortBy, sortOrder);
+        const tasks = await getFilterSortedTasks(filters, sortBy, sortOrder);
         res.status(200).json(tasks);
     } catch (error) {
         console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
@@ -44,7 +43,7 @@ router.get("/filter-sort", async (req, res) => {
     }
 });
 
-router.get("/today", async (req, res) => {
+router.get('/today', async (req, res) => {
     try {
         const todayTasks = await getTodayTasks();
         res.status(200).json(todayTasks);
@@ -54,7 +53,7 @@ router.get("/today", async (req, res) => {
     }
 });
 
-router.get("/next7days", async (req, res) => {
+router.get('/next7days', async (req, res) => {
     try {
         const next7days = await getNext7DaysTasks();
         res.status(200).json(next7days);
@@ -64,7 +63,7 @@ router.get("/next7days", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
     const authUserId = req.headers.authorization;
 
     if (!authUserId) {
@@ -79,7 +78,7 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
     }
 });
-router.get("/:taskId", async (req, res) => {
+router.get('/:taskId', async (req, res) => {
     const taskId = req.params.taskId;
     const authUserId = req.headers.authorization;
 
@@ -95,7 +94,7 @@ router.get("/:taskId", async (req, res) => {
     }
 });
 
-router.get("/:taskId/subtasks/:subtaskId", async (req, res) => {
+router.get('/:taskId/subtasks/:subtaskId', async (req, res) => {
     const taskId = req.params.taskId;
     const subtaskId = req.params.subtaskId;
     const authUserId = req.headers.authorization;
@@ -112,7 +111,7 @@ router.get("/:taskId/subtasks/:subtaskId", async (req, res) => {
     }
 });
 
-router.post("/:userId", async (req, res) => {
+router.post('/:userId', async (req, res) => {
     const userId = req.params.userId;
     const { taskName, status, priority, deadline, subtasks } = req.body;
     const newTask = { taskName, status, priority, deadline, userId, subtasks };
@@ -128,7 +127,7 @@ router.post("/:userId", async (req, res) => {
     }
 });
 
-router.post("/:taskId/subtasks", async (req, res) => {
+router.post('/:taskId/subtasks', async (req, res) => {
     const taskId = req.params.taskId;
     const authUserId = req.headers.authorization;
 
@@ -149,7 +148,7 @@ router.post("/:taskId/subtasks", async (req, res) => {
     }
 });
 
-router.put("/:taskId/edit", async (req, res) => {
+router.put('/:taskId/edit', async (req, res) => {
     const taskId = req.params.taskId;
     const authUserId = req.headers.authorization;
     const { taskName, status, priority, deadline } = req.body;
@@ -169,7 +168,7 @@ router.put("/:taskId/edit", async (req, res) => {
     }
 });
 
-router.put("/:taskId/subtasks/:subtaskId", async (req, res) => {
+router.put('/:taskId/subtasks/:subtaskId', async (req, res) => {
     const taskId = req.params.taskId;
     const subtaskId = req.params.subtaskId;
     const authUserId = req.headers.authorization;
@@ -192,7 +191,7 @@ router.put("/:taskId/subtasks/:subtaskId", async (req, res) => {
     }
 });
 
-router.delete("/:taskId/subtasks/:subtaskId", async (req, res) => {
+router.delete('/:taskId/subtasks/:subtaskId', async (req, res) => {
     const taskId = req.params.taskId;
     const subtaskId = req.params.subtaskId;
     const authUserId = req.headers.authorization;
@@ -211,7 +210,7 @@ router.delete("/:taskId/subtasks/:subtaskId", async (req, res) => {
     }
 });
 
-router.delete("/:taskId", async (req, res) => {
+router.delete('/:taskId', async (req, res) => {
     const taskId = req.params.taskId;
     const authUserId = req.headers.authorization;
 

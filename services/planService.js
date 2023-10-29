@@ -1,54 +1,54 @@
-const Plan = require("../models/PlanModel.js");
-const { ERROR_MESSAGE } = require("../constants.js");
-const mongoose = require("mongoose");
+const Plan = require('../models/PlanModel.js');
+const { ERROR_MESSAGE } = require('../constants.js');
+const mongoose = require('mongoose');
 
-const service = (filters, sortBy, sortOrder) => {
-    const query = Plan.find();
+const getFilterSortedPlan = (filters, sortBy, sortOrder) => {
+    // const query = Plan.find({ _id: filters.planId });
+    const query = Plan.find({});
+
+    if (filters.planId) {
+        query.where('_id', filters.planId);
+    }
 
     if (filters.planName) {
-        query.where("planName", filters.planName);
+        query.where('planName', filters.planName);
     }
 
     if (filters.tasksId) {
-        query.where("tasksId", filters.tasksId);
+        query.where('tasksId', filters.tasksId);
     }
 
-    // query.populate("tasksId");
+    query.populate('tasksId');
 
     const sortOptions = {};
     if (sortBy && sortOrder) {
-        sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
         query.sort(sortOptions);
     }
 
-    // if (filters.taskName) {
-    //     query.populate({
-    //         path: "tasksId",
-    //         match: { taskName: filters.taskName },
-    //     });
-    //     query.where({ tasksId: { $ne: [] } });
-    // }
+    if (filters.taskName) {
+        query.populate({
+            path: 'tasksId',
+            match: { taskName: filters.taskName },
+        });
+    }
 
-    // if (filters.taskStatus) {
-    //     query.populate({
-    //         path: "tasksId",
-    //         match: { status: filters.taskStatus },
-    //         // options: {
-    //         //     match: { status: { $exists: true } },
-    //         //     select: "status",
-    //         // },
-    //     });
-    // }
+    if (filters.taskStatus) {
+        query.populate({
+            path: 'tasksId',
+            match: { status: filters.taskStatus },
+        });
+    }
 
     return query.exec();
 };
 
 const getAllPlans = async (authUserId) => {
-    return Plan.find().populate("tasksId");
+    return Plan.find().populate('tasksId');
 };
 
 const getOnePlanById = (planId) => {
-    return Plan.findById(planId).populate("tasksId");
+    return Plan.findById(planId).populate('tasksId');
 };
 
 const getTaskCount = (planId) => {
@@ -56,7 +56,7 @@ const getTaskCount = (planId) => {
 
     return Plan.aggregate([
         { $match: { _id: id } },
-        { $project: { _id: 0, planName: 1, taskCount: { $size: "$tasksId" } } },
+        { $project: { _id: 0, planName: 1, taskCount: { $size: '$tasksId' } } },
     ]);
 };
 
@@ -82,5 +82,5 @@ module.exports = {
     deletePlan,
     editPlan,
     getTaskCount,
-    service,
+    getFilterSortedPlan,
 };

@@ -1,38 +1,38 @@
-const Task = require("../models/TaskModel.js");
+const Task = require('../models/TaskModel.js');
 const {
     DEFAULT_DEADLINE,
     STATUS,
     PRIORITY,
     ERROR_MESSAGE,
-} = require("../constants.js");
+} = require('../constants.js');
 
-const service = (filters, sortBy, sortOrder) => {
+const getFilterSortedTasks = (filters, sortBy, sortOrder) => {
     const query = Task.find();
 
     if (filters.taskName) {
-        query.where("taskName", filters.taskName);
+        query.where('taskName', filters.taskName);
     }
 
     if (filters.status) {
-        query.where("status", filters.status);
+        query.where('status', filters.status);
     }
 
     if (filters.priority) {
-        query.where("priority", filters.priority);
+        query.where('priority', filters.priority);
     }
 
     if (filters.deadline) {
-        query.where("deadline", filters.deadline);
+        query.where('deadline', filters.deadline);
     }
 
     if (filters.userId) {
-        query.where("userId", filters.userId);
+        query.where('userId', filters.userId);
     }
 
     const sortOptions = {};
 
     if (sortBy && sortOrder) {
-        sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
         query.sort(sortOptions);
     }
 
@@ -44,10 +44,10 @@ const getTodayTasks = async () => {
     today.setUTCHours(0, 0, 0, 0); // Устанавливаем время на начало дня
 
     const query = Task.find();
-    query.where("deadline", today);
+    query.where('deadline', today);
 
     const taskCount = await Task.countDocuments({ deadline: today });
-    console.log("taskCount: ", taskCount);
+    console.log('taskCount: ', taskCount);
 
     if (taskCount === 0) {
         return ERROR_MESSAGE.NO_TASKS_TODAY;
@@ -70,13 +70,13 @@ const getNext7DaysTasks = async () => {
 };
 
 const getOneTaskById = (taskId) => {
-    return Task.findById(taskId).populate("userId");
+    return Task.findById(taskId).populate('userId');
 };
 
 const getAllTasks = async (authUserId) => {
     const userTasks = await Task.find({
         userId: authUserId,
-    }).populate("userId");
+    }).populate('userId');
 
     return userTasks;
 };
@@ -142,7 +142,7 @@ const deleteSubtask = async (taskId, subtaskId) => {
     );
 
     if (!subtaskToDelete) {
-        return "Подзадача не найдена";
+        return 'Подзадача не найдена';
     }
 
     if (subtaskToDelete) {
@@ -184,7 +184,7 @@ module.exports = {
     createSubtask,
     deleteSubtask,
     getOneSubtaskById,
-    service,
+    getFilterSortedTasks,
     getTodayTasks,
     getNext7DaysTasks,
 };

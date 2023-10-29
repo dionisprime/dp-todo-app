@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
         res.send(user);
     } catch (error) {
         console.log(ERROR_MESSAGE.ADD_USER_ERROR, error.message);
-        res.send(`${ERROR_MESSAGE.ADD_USER_ERROR} ${error.message}`);
+        res.send(`${ERROR_MESSAGE.ADD_USER_ERROR}: ${error.message}`);
     }
 });
 

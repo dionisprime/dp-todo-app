@@ -1,4 +1,5 @@
 const Plan = require('../models/PlanModel.js');
+const { ValidationError } = require('./CustomErrors.js');
 const { ERROR_MESSAGE } = require('../constants.js');
 const mongoose = require('mongoose');
 
@@ -61,6 +62,10 @@ const getTaskCount = (planId) => {
 };
 
 const createPlan = ({ planName, tasksId }) => {
+    if (planName.length < 3 || planName.length > 30) {
+        throw new ValidationError(ERROR_MESSAGE.INCORRECT_LENGTH);
+    }
+
     return Plan.create({
         planName,
         tasksId,

@@ -1,5 +1,7 @@
-const { DEFAULT_ROLES } = require('../constants.js');
 const User = require('../models/UserModel.js');
+const { ValidationError } = require('./CustomErrors.js');
+const { ERROR_MESSAGE } = require('../constants.js');
+const { DEFAULT_ROLES } = require('../constants.js');
 
 const getAllUsers = () => {
     return User.find({});
@@ -10,6 +12,9 @@ const getUserById = (userId) => {
 };
 
 const addUser = ({ username, age, email, roles = DEFAULT_ROLES }) => {
+    if (username.length < 3 || username.length > 30) {
+        throw new ValidationError(ERROR_MESSAGE.INCORRECT_LENGTH);
+    }
     return User.create({
         username,
         age,

@@ -1,4 +1,5 @@
 const Task = require('../models/TaskModel.js');
+const { ValidationError } = require('./CustomErrors.js');
 const {
     DEFAULT_DEADLINE,
     STATUS,
@@ -89,6 +90,9 @@ const createTask = ({
     deadline = DEFAULT_DEADLINE,
     subtasks,
 }) => {
+    if (taskName.length < 3 || taskName.length > 30) {
+        throw new ValidationError(ERROR_MESSAGE.INCORRECT_LENGTH);
+    }
     return Task.create({
         taskName,
         status,

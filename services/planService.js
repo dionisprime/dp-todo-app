@@ -4,7 +4,6 @@ const { ERROR_MESSAGE } = require('../constants.js');
 const mongoose = require('mongoose');
 
 const getFilterSortedPlan = (filters, sortBy, sortOrder) => {
-    // const query = Plan.find({ _id: filters.planId });
     const query = Plan.find({});
 
     if (filters.planId) {

@@ -20,9 +20,9 @@ router.get('/', async (req, res) => {
             res.status(404).send(ERROR_MESSAGE.USERS_NOT_FOUND);
         }
     } catch (error) {
-        console.error(ERROR_MESSAGE.EDIT_USER_ERROR, error.message);
+        console.error(ERROR_MESSAGE.GET_USERS_ERROR, error.message);
         res.status(500).send(
-            `${ERROR_MESSAGE.EDIT_USER_ERROR}: ${error.message}`
+            `${ERROR_MESSAGE.GET_USERS_ERROR}: ${error.message}`
         );
     }
 });
@@ -35,7 +35,7 @@ router.get('/:userId', async (req, res) => {
         await userAccessCheck(userId, authUserId);
         const user = await getUserById(userId);
 
-        res.json(user);
+        res.status(200).json(user);
     } catch (error) {
         console.log(ERROR_MESSAGE.GET_USER_ERROR, error.message);
         res.status(500).send(
@@ -50,10 +50,12 @@ router.post('/', async (req, res) => {
 
     try {
         const user = await addUser(newUser);
-        res.send(user);
+        res.status(201).send(user);
     } catch (error) {
         console.log(ERROR_MESSAGE.ADD_USER_ERROR, error.message);
-        res.send(`${ERROR_MESSAGE.ADD_USER_ERROR}: ${error.message}`);
+        res.status(500).send(
+            `${ERROR_MESSAGE.ADD_USER_ERROR}: ${error.message}`
+        );
     }
 });
 
@@ -64,14 +66,16 @@ router.put('/:userId/edit', async (req, res) => {
     const userChanges = { username, age, email };
 
     try {
-        await userAccessCheck(userId, authUserId);
+        // await userAccessCheck(userId, authUserId);
 
         const updatedUser = await editUser(userId, userChanges);
 
-        res.send(updatedUser);
+        res.status(200).send(updatedUser);
     } catch (error) {
         console.log(ERROR_MESSAGE.EDIT_USER_ERROR, error.message);
-        res.send(`${ERROR_MESSAGE.EDIT_USER_ERROR}: ${error.message}`);
+        res.status(400).send(
+            `${ERROR_MESSAGE.EDIT_USER_ERROR}: ${error.message}`
+        );
     }
 });
 
@@ -80,13 +84,15 @@ router.delete('/:userId', async (req, res) => {
     const authUserId = req.headers.authorization;
 
     try {
-        await userAccessCheck(userId, authUserId);
+        // await userAccessCheck(userId, authUserId);
         const result = await deleteUser(userId);
 
-        res.send(`Юзер ${result} успешно удален`);
+        res.status(200).send(`Юзер ${result} успешно удален`);
     } catch (error) {
         console.log(ERROR_MESSAGE.DELETE_USER_ERROR, error.message);
-        res.send(`${ERROR_MESSAGE.DELETE_USER_ERROR} ${error.message}`);
+        res.status(401).send(
+            `${ERROR_MESSAGE.DELETE_USER_ERROR} ${error.message}`
+        );
     }
 });
 

@@ -50,9 +50,9 @@ router.get('/filter-sort', async (req, res) => {
 router.get('/', async (req, res) => {
     const authUserId = req.headers.authorization;
 
-    if (!authUserId) {
-        return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
-    }
+    // if (!authUserId) {
+    //     return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+    // }
 
     try {
         const plans = await getAllPlans();

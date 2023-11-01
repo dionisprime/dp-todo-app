@@ -1,8 +1,8 @@
 const request = require('supertest');
 const app = require('../main.js');
-const { addUser, deleteUser } = require('../services/userService');
+const { addUser, deleteUser } = require('../services/userService.js');
 
-const { DEFAULT_ROLES, ERROR_MESSAGE } = require('../constants');
+const { DEFAULT_ROLES, ERROR_MESSAGE } = require('../constants.js');
 
 describe('/user', () => {
     // Тест для GET-запроса на получение всех пользователей

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const fieldsValidator = require('../middlewares/fieldsValidator.js');
 const { ERROR_MESSAGE } = require('../constants.js');
 const { planAccessCheck } = require('../services/accessCheck.js');
 
@@ -97,7 +98,7 @@ router.get('/:planId/taskCount', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', fieldsValidator(['planName']), async (req, res) => {
     const { planName, tasksId } = req.body;
     const newPlan = { planName, tasksId };
 

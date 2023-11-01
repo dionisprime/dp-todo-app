@@ -28,7 +28,7 @@ const ERROR_MESSAGE = {
     EDIT_TASK_ERROR: 'Не удалось обновить задачу',
     DELETE__TASK_ERROR: 'Не удалось удалить задачу',
     INCORRECT_LENGTH: 'Некорректная длина, меньше 3х или более 30 символов...',
-
+    INCORRECT_VALUE: 'Некорректное значение',
     SUBTASK_NOT_FOUND: 'Подзадача не найдена',
 
     USER_NOT_FOUND: 'Пользователь не найден',
@@ -48,6 +48,8 @@ const ERROR_MESSAGE = {
     ACCESS_GRANTED: 'Доступ разрешен',
     ACCESS_DENIED: 'Другой пользователь. Доступ запрещен',
     ID_NOT_MATCH: 'ID не совпадает',
+
+    REQUIRED_FIELD: 'Обязательное поле!',
 };
 
 module.exports = {

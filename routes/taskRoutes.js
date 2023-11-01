@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const fieldsValidator = require('../middlewares/fieldsValidator.js');
 const { ERROR_MESSAGE } = require('../constants.js');
 
 const { tasksAccessCheck } = require('../services/accessCheck.js');
@@ -111,21 +112,32 @@ router.get('/:taskId/subtasks/:subtaskId', async (req, res) => {
     }
 });
 
-router.post('/:userId', async (req, res) => {
-    const userId = req.params.userId;
-    const { taskName, status, priority, deadline, subtasks } = req.body;
-    const newTask = { taskName, status, priority, deadline, userId, subtasks };
+router.post(
+    '/:userId',
+    fieldsValidator(['taskName', 'status']),
+    async (req, res) => {
+        const userId = req.params.userId;
+        const { taskName, status, priority, deadline, subtasks } = req.body;
+        const newTask = {
+            taskName,
+            status,
+            priority,
+            deadline,
+            userId,
+            subtasks,
+        };
 
-    try {
-        const task = await createTask(newTask);
-        res.status(201).send(task);
-    } catch (error) {
-        console.log(ERROR_MESSAGE.ADD_TASK_ERROR, error.message);
-        res.status(404).send(
-            `${ERROR_MESSAGE.ADD_TASK_ERROR}: ${error.message}`
-        );
+        try {
+            const task = await createTask(newTask);
+            res.status(201).send(task);
+        } catch (error) {
+            console.log(ERROR_MESSAGE.ADD_TASK_ERROR, error.message);
+            res.status(404).send(
+                `${ERROR_MESSAGE.ADD_TASK_ERROR}: ${error.message}`
+            );
+        }
     }
-});
+);
 
 router.post('/:taskId/subtasks', async (req, res) => {
     const taskId = req.params.taskId;

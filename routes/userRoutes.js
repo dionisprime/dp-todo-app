@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const isAuth = require('../middlewares/isAuth.js');
+const fieldsValidator = require('../middlewares/fieldsValidator.js');
+
 const { userAccessCheck } = require('../services/accessCheck.js');
 const {
     getAllUsers,
@@ -10,7 +13,7 @@ const {
 } = require('../services/userService.js');
 const { ERROR_MESSAGE } = require('../constants.js');
 
-router.get('/', async (req, res) => {
+router.get('/', isAuth, async (req, res) => {
     try {
         const users = await getAllUsers();
 
@@ -34,6 +37,7 @@ router.get('/:userId', async (req, res) => {
     try {
         await userAccessCheck(userId, authUserId);
         const user = await getUserById(userId);
+        // console.log('user: ', user);
 
         res.status(200).json(user);
     } catch (error) {
@@ -44,7 +48,7 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', fieldsValidator(['username', 'email']), async (req, res) => {
     const { username, age, email, roles } = req.body;
     const newUser = { username, age, email, roles };
 

@@ -1,10 +1,31 @@
 const request = require('supertest');
 const app = require('../main.js');
 const { addUser, deleteUser } = require('../services/userService.js');
-
 const { DEFAULT_ROLES, ERROR_MESSAGE } = require('../constants.js');
+const {
+    testUser,
+    testPlan,
+    testTask,
+    generateRandomUser,
+    generateRandomPlan,
+    generateRandomTask,
+    generateRandomSubtask,
+} = require('./fixtures/fixtures.js');
 
 describe('/user', () => {
+    it('Проверка "замокания" console.log()', async () => {
+        const consoleLog = jest
+            .spyOn(console, 'log')
+            .mockImplementation(() => 'Замоканый console.log() вернул это!');
+
+        console.log('Это сообщение будет замокано и не выведется');
+        const mockedResult = console.log();
+        consoleLog.mockRestore();
+        console.log(
+            'Теперь console.log размокан, и мы увидим это сообщение в консоли'
+        );
+        console.log('mockedResult: ', mockedResult);
+    });
     // Тест для GET-запроса на получение всех пользователей
     it('GET / должен вернуть всех пользователей - статус 200', async () => {
         const response = await request(app).get('/user');
@@ -12,12 +33,7 @@ describe('/user', () => {
     });
 
     it('POST / тест добавления юзера и статус 201', async () => {
-        const newUser = {
-            username: 'NewUser',
-            age: 28,
-            email: 'newuser@example.com',
-            roles: DEFAULT_ROLES,
-        };
+        const newUser = testUser; //использую фикстуру тестового юзера
 
         const { body } = await request(app) //деструктуризация объекта ответа
             .post('/user')
@@ -43,19 +59,10 @@ describe('/user', () => {
     });
 
     it('PUT /:userId/edit должен изменять данные пользователя', async () => {
-        const newUser = {
-            username: 'UserToEdit',
-            age: 35,
-            email: 'usertoedit@example.com',
-            roles: DEFAULT_ROLES,
-        };
+        const newUser = generateRandomUser(); //использую фикстуру-генератор рандомного юзера
         const createdUser = await addUser(newUser);
 
-        const updatedData = {
-            username: 'UpdatedUser',
-            age: 40,
-            email: 'updateduser@example.com',
-        };
+        const updatedData = generateRandomUser();
 
         const response = await request(app)
             .put(`/user/${createdUser._id}/edit`)
@@ -67,12 +74,7 @@ describe('/user', () => {
     });
 
     it('DELETE /:userId должен удалять пользователя по его id', async () => {
-        const newUser = {
-            username: 'UserToDelete',
-            age: 45,
-            email: 'usertodelete@example.com',
-            roles: DEFAULT_ROLES,
-        };
+        const newUser = generateRandomUser();
 
         const createdUser = await addUser(newUser);
         const response = await request(app).delete(`/user/${createdUser._id}`);

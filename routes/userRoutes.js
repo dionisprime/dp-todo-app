@@ -13,7 +13,8 @@ const {
 } = require('../services/userService.js');
 const { ERROR_MESSAGE } = require('../constants.js');
 
-router.get('/', isAuth, async (req, res) => {
+// router.get('/', isAuth, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const users = await getAllUsers();
 
@@ -48,7 +49,8 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-router.post('/', fieldsValidator(['username', 'email']), async (req, res) => {
+router.post('/', async (req, res) => {
+    // router.post('/', fieldsValidator(['username', 'email']), async (req, res) => {
     const { username, age, email, roles } = req.body;
     const newUser = { username, age, email, roles };
 

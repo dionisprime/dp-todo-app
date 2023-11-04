@@ -4,8 +4,8 @@ const { ERROR_MESSAGE } = require('../constants.js');
 const isAuth = async (req, res, next) => {
     const authUserId = req.headers.authorization;
 
-    const userInDataBase = await getUserById(authUserId || null);
     try {
+        const userInDataBase = await getUserById(authUserId || null);
         if (!userInDataBase) {
             return res.status(401).send(ERROR_MESSAGE.NOT_AUTHORIZED);
         }

@@ -1,8 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const fieldsValidator = require('../middlewares/fieldsValidator.js');
+const isAuth = require('../middlewares/isAuth.js');
 const { ERROR_MESSAGE } = require('../constants.js');
 const { planAccessCheck } = require('../services/accessCheck.js');
+const {
+    validateId,
+    validateName,
+    validatePlanTasksId,
+    validateStatusQuery,
+    validatePriorityQuery,
+    validateNameQuery,
+    validateIdQuery,
+    validateSortQuery,
+} = require('../middlewares/validate.js');
+const { validationResult } = require('express-validator');
 
 const {
     getOnePlanById,
@@ -14,47 +25,52 @@ const {
     getFilterSortedPlan,
 } = require('../services/planService.js');
 
-router.get('/filter-sort', async (req, res) => {
-    const authUserId = req.headers.authorization;
-    if (!authUserId) {
-        return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+router.get(
+    '/filter-sort',
+    isAuth,
+    validateIdQuery('planId'),
+    validateNameQuery('planName'),
+    validateStatusQuery(),
+    validatePriorityQuery(),
+    validateSortQuery('sortBy'),
+    validateSortQuery('sortOrder'),
+    async (req, res) => {
+        const {
+            planId,
+            planName,
+            tasksId,
+            taskStatus,
+            taskName,
+            sortBy,
+            sortOrder,
+        } = req.query;
+        const filters = {
+            planId,
+            planName,
+            tasksId,
+            taskStatus,
+            taskName,
+            sortBy,
+            sortOrder,
+        };
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        try {
+            const plans = await getFilterSortedPlan(filters, sortBy, sortOrder);
+            res.status(200).json(plans);
+        } catch (error) {
+            console.error(ERROR_MESSAGE.GET_PLAN_ERROR, error.message);
+            res.status(500).json({ error: ERROR_MESSAGE.GET_PLAN_ERROR });
+        }
     }
+);
 
-    const {
-        planId,
-        planName,
-        tasksId,
-        taskStatus,
-        taskName,
-        sortBy,
-        sortOrder,
-    } = req.query;
-    const filters = {
-        planId,
-        planName,
-        tasksId,
-        taskStatus,
-        taskName,
-        sortBy,
-        sortOrder,
-    };
-
-    try {
-        const plans = await getFilterSortedPlan(filters, sortBy, sortOrder);
-        res.status(200).json(plans);
-    } catch (error) {
-        console.error(ERROR_MESSAGE.GET_PLAN_ERROR, error.message);
-        res.status(500).json({ error: ERROR_MESSAGE.GET_PLAN_ERROR });
-    }
-});
-
-router.get('/', async (req, res) => {
-    const authUserId = req.headers.authorization;
-
-    // if (!authUserId) {
-    //     return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
-    // }
-
+router.get('/', isAuth, async (req, res) => {
     try {
         const plans = await getAllPlans();
         res.status(200).json(plans);
@@ -64,9 +80,14 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:planId', async (req, res) => {
+router.get('/:planId', validateId('planId'), async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
     try {
         await planAccessCheck(planId, authUserId);
@@ -81,10 +102,14 @@ router.get('/:planId', async (req, res) => {
     }
 });
 
-router.get('/:planId/taskCount', async (req, res) => {
+router.get('/:planId/taskCount', validateId('planId'), async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
+    const errors = validationResult(req);
 
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     try {
         await planAccessCheck(planId, authUserId);
         const taskCount = await getTaskCount(planId);
@@ -98,9 +123,14 @@ router.get('/:planId/taskCount', async (req, res) => {
     }
 });
 
-router.post('/', fieldsValidator(['planName']), async (req, res) => {
+router.post('/', validateName('planName'), async (req, res) => {
     const { planName, tasksId } = req.body;
     const newPlan = { planName, tasksId };
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
     try {
         const plan = await createPlan(newPlan);
@@ -114,30 +144,46 @@ router.post('/', fieldsValidator(['planName']), async (req, res) => {
     }
 });
 
-router.put('/:planId/', async (req, res) => {
-    const planId = req.params.planId;
-    const authUserId = req.headers.authorization;
-    const { planName, tasksId } = req.body;
-    const planChanges = { planName, tasksId };
+router.put(
+    '/:planId/',
+    validateId('planId'),
+    validateName('planName'),
+    validatePlanTasksId('tasksId'),
 
-    try {
-        await planAccessCheck(planId, authUserId);
+    async (req, res) => {
+        const planId = req.params.planId;
+        const authUserId = req.headers.authorization;
+        const { planName, tasksId } = req.body;
+        const planChanges = { planName, tasksId };
+        const errors = validationResult(req);
 
-        const updatedPlan = await editPlan(planId, planChanges);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-        res.status(200).send(updatedPlan);
-    } catch (error) {
-        console.log(ERROR_MESSAGE.EDIT_PLAN_ERROR, error.message);
-        res.status(404).send(
-            `${ERROR_MESSAGE.EDIT_PLAN_ERROR}: ${error.message}`
-        );
+        try {
+            await planAccessCheck(planId, authUserId);
+
+            const updatedPlan = await editPlan(planId, planChanges);
+
+            res.status(200).send(updatedPlan);
+        } catch (error) {
+            console.log(ERROR_MESSAGE.EDIT_PLAN_ERROR, error.message);
+            res.status(404).send(
+                `${ERROR_MESSAGE.EDIT_PLAN_ERROR}: ${error.message}`
+            );
+        }
     }
-});
+);
 
-router.delete('/:planId', async (req, res) => {
+router.delete('/:planId', validateId('planId'), async (req, res) => {
     const planId = req.params.planId;
     const authUserId = req.headers.authorization;
+    const errors = validationResult(req);
 
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     try {
         await planAccessCheck(planId, authUserId);
 

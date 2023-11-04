@@ -5,9 +5,9 @@ const DEFAULT_DEADLINE = new Date(Date.now() + ONE_MONTH);
 const DEFAULT_ROLES = ['user'];
 
 const STATUS = {
-    TODO: 'ToDo',
-    IN_PROGRESS: 'In progress',
-    DONE: 'Done',
+    TODO: 'todo',
+    IN_PROGRESS: 'in progress',
+    DONE: 'done',
 };
 const PRIORITY = {
     LOW: 'low',
@@ -29,7 +29,9 @@ const ERROR_MESSAGE = {
     DELETE__TASK_ERROR: 'Не удалось удалить задачу',
     INCORRECT_LENGTH: 'Некорректная длина, меньше 3х или более 30 символов...',
     INCORRECT_VALUE: 'Некорректное значение',
+
     SUBTASK_NOT_FOUND: 'Подзадача не найдена',
+    MUST_BE_AN_ARRAY: 'должен быть массивом',
 
     USER_NOT_FOUND: 'Пользователь не найден',
     USERS_NOT_FOUND: 'Пользователи не найдены',

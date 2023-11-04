@@ -1,8 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const fieldsValidator = require('../middlewares/fieldsValidator.js');
 const { ERROR_MESSAGE } = require('../constants.js');
-
+const isAuth = require('../middlewares/isAuth.js');
+const {
+    validateId,
+    validateName,
+    validateStatus,
+    validatePriority,
+    validateDeadline,
+    validateSubtasks,
+    validateDescription,
+    validateDeadlineQuery,
+    validateStatusQuery,
+    validatePriorityQuery,
+    validateNameQuery,
+    validateIdQuery,
+    validateSortQuery,
+} = require('../middlewares/validate.js');
+const { validationResult } = require('express-validator');
 const { tasksAccessCheck } = require('../services/accessCheck.js');
 const {
     createTask,
@@ -19,30 +34,59 @@ const {
     getNext7DaysTasks,
 } = require('../services/taskService.js');
 
-router.get('/filter-sort', async (req, res) => {
-    const authUserId = req.headers.authorization;
-    if (!authUserId) {
-        return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
-    }
+router.get(
+    '/filter-sort',
+    validateIdQuery('userId'),
+    validateNameQuery('taskName'),
+    validateDeadlineQuery(),
+    validateStatusQuery(),
+    validatePriorityQuery(),
+    validateSortQuery('sortBy'),
+    validateSortQuery('sortOrder'),
+    async (req, res) => {
+        const authUserId = req.headers.authorization;
+        if (!authUserId) {
+            return res
+                .status(401)
+                .json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
+        }
 
-    const { taskName, priority, status, deadline, userId, sortBy, sortOrder } =
-        req.query;
-    const filters = {
-        taskName,
-        priority,
-        status,
-        deadline,
-        userId,
-    };
+        const {
+            taskName,
+            priority,
+            status,
+            deadline,
+            userId,
+            sortBy,
+            sortOrder,
+        } = req.query;
+        const filters = {
+            taskName,
+            priority,
+            status,
+            deadline,
+            userId,
+        };
 
-    try {
-        const tasks = await getFilterSortedTasks(filters, sortBy, sortOrder);
-        res.status(200).json(tasks);
-    } catch (error) {
-        console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
-        res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        try {
+            const tasks = await getFilterSortedTasks(
+                filters,
+                sortBy,
+                sortOrder
+            );
+            res.status(200).json(tasks);
+        } catch (error) {
+            console.error(ERROR_MESSAGE.GET_TASKS_ERROR, error.message);
+            res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
+        }
     }
-});
+);
 
 router.get('/today', async (req, res) => {
     try {
@@ -64,12 +108,8 @@ router.get('/next7days', async (req, res) => {
     }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', isAuth, async (req, res) => {
     const authUserId = req.headers.authorization;
-
-    if (!authUserId) {
-        return res.status(401).json({ error: ERROR_MESSAGE.NOT_AUTHORIZED });
-    }
 
     try {
         const results = await getAllTasks(authUserId);
@@ -79,9 +119,15 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: ERROR_MESSAGE.GET_TASKS_ERROR });
     }
 });
-router.get('/:taskId', async (req, res) => {
+
+router.get('/:taskId', validateId('taskId'), async (req, res) => {
     const taskId = req.params.taskId;
     const authUserId = req.headers.authorization;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
     try {
         await tasksAccessCheck(taskId, authUserId);
@@ -95,26 +141,41 @@ router.get('/:taskId', async (req, res) => {
     }
 });
 
-router.get('/:taskId/subtasks/:subtaskId', async (req, res) => {
-    const taskId = req.params.taskId;
-    const subtaskId = req.params.subtaskId;
-    const authUserId = req.headers.authorization;
+router.get(
+    '/:taskId/subtasks/:subtaskId',
+    validateId('taskId'),
+    validateId('subtaskId'),
+    async (req, res) => {
+        const taskId = req.params.taskId;
+        const subtaskId = req.params.subtaskId;
+        const authUserId = req.headers.authorization;
+        const errors = validationResult(req);
 
-    try {
-        await tasksAccessCheck(taskId, authUserId);
-        const results = await getOneSubtaskById(taskId, subtaskId);
-        res.status(200).json(results);
-    } catch (error) {
-        console.error(ERROR_MESSAGE.GET_TASK_ERROR, error.message);
-        res.status(500).json(
-            `${ERROR_MESSAGE.GET_TASK_ERROR} ${error.message}`
-        );
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        try {
+            await tasksAccessCheck(taskId, authUserId);
+            const results = await getOneSubtaskById(taskId, subtaskId);
+            res.status(200).json(results);
+        } catch (error) {
+            console.error(ERROR_MESSAGE.GET_TASK_ERROR, error.message);
+            res.status(500).json(
+                `${ERROR_MESSAGE.GET_TASK_ERROR} ${error.message}`
+            );
+        }
     }
-});
+);
 
 router.post(
     '/:userId',
-    fieldsValidator(['taskName', 'status']),
+    validateId('userId'),
+    validateName('taskName'),
+    validateStatus(),
+    validatePriority(),
+    validateDeadline(),
+    validateSubtasks(),
     async (req, res) => {
         const userId = req.params.userId;
         const { taskName, status, priority, deadline, subtasks } = req.body;
@@ -126,6 +187,12 @@ router.post(
             userId,
             subtasks,
         };
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
         try {
             const task = await createTask(newTask);
@@ -139,92 +206,151 @@ router.post(
     }
 );
 
-router.post('/:taskId/subtasks', async (req, res) => {
-    const taskId = req.params.taskId;
-    const authUserId = req.headers.authorization;
+router.post(
+    '/:taskId/subtasks',
+    validateId('taskId'),
+    validateName('subtaskName'),
+    validateDescription(),
+    async (req, res) => {
+        const taskId = req.params.taskId;
+        const authUserId = req.headers.authorization;
 
-    const { subtaskName, description, status, createdAt } = req.body;
-    const newSubtask = { subtaskName, description, status, createdAt };
+        const { subtaskName, description, status, createdAt } = req.body;
+        const newSubtask = { subtaskName, description, status, createdAt };
 
-    try {
-        await tasksAccessCheck(taskId, authUserId);
+        const errors = validationResult(req);
 
-        const task = await createSubtask(taskId, newSubtask);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-        res.status(201).send(task);
-    } catch (error) {
-        console.log(ERROR_MESSAGE.ADD_TASK_ERROR, error.message);
-        res.status(404).send(
-            `${ERROR_MESSAGE.ADD_TASK_ERROR}: ${error.message}`
-        );
+        try {
+            await tasksAccessCheck(taskId, authUserId);
+
+            const task = await createSubtask(taskId, newSubtask);
+
+            res.status(201).send(task);
+        } catch (error) {
+            console.log(ERROR_MESSAGE.ADD_TASK_ERROR, error.message);
+            res.status(404).send(
+                `${ERROR_MESSAGE.ADD_TASK_ERROR}: ${error.message}`
+            );
+        }
     }
-});
+);
 
-router.put('/:taskId/edit', async (req, res) => {
-    const taskId = req.params.taskId;
-    const authUserId = req.headers.authorization;
-    const { taskName, status, priority, deadline } = req.body;
-    const taskChanges = { taskName, status, priority, deadline };
+router.put(
+    '/:taskId/edit',
+    validateId('taskId'),
+    validateName('taskName'),
+    validateStatus(),
+    validatePriority(),
+    validateDeadline(),
+    async (req, res) => {
+        const taskId = req.params.taskId;
+        const authUserId = req.headers.authorization;
+        const { taskName, status, priority, deadline } = req.body;
+        const taskChanges = { taskName, status, priority, deadline };
 
-    try {
-        await tasksAccessCheck(taskId, authUserId);
+        const errors = validationResult(req);
 
-        const updatedTask = await editTask(taskId, taskChanges);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-        res.status(200).send(updatedTask);
-    } catch (error) {
-        console.log(ERROR_MESSAGE.EDIT_TASK_ERROR, error.message);
-        res.status(404).send(
-            `${ERROR_MESSAGE.EDIT_TASK_ERROR}: ${error.message}`
-        );
+        try {
+            await tasksAccessCheck(taskId, authUserId);
+
+            const updatedTask = await editTask(taskId, taskChanges);
+
+            res.status(200).send(updatedTask);
+        } catch (error) {
+            console.log(ERROR_MESSAGE.EDIT_TASK_ERROR, error.message);
+            res.status(404).send(
+                `${ERROR_MESSAGE.EDIT_TASK_ERROR}: ${error.message}`
+            );
+        }
     }
-});
+);
 
-router.put('/:taskId/subtasks/:subtaskId', async (req, res) => {
-    const taskId = req.params.taskId;
-    const subtaskId = req.params.subtaskId;
-    const authUserId = req.headers.authorization;
+router.put(
+    '/:taskId/subtasks/:subtaskId',
+    validateId('taskId'),
+    validateId('subtaskId'),
+    validateName('subtaskName'),
+    validateStatus(),
+    validateDescription(),
+    validateSubtasks(),
+    async (req, res) => {
+        const taskId = req.params.taskId;
+        const subtaskId = req.params.subtaskId;
+        const authUserId = req.headers.authorization;
 
-    const { subtaskName, description, status } = req.body;
-    const subtaskChanges = { subtaskName, description, status };
-    try {
-        await tasksAccessCheck(taskId, authUserId);
-        const updatedTask = await editSubtask(
-            taskId,
-            subtaskId,
-            subtaskChanges
-        );
-        res.status(200).send(updatedTask);
-    } catch (error) {
-        console.log(ERROR_MESSAGE.EDIT_TASK_ERROR, error.message);
-        res.status(404).send(
-            `${ERROR_MESSAGE.EDIT_TASK_ERROR}: ${error.message}`
-        );
+        const { subtaskName, description, status } = req.body;
+        const subtaskChanges = { subtaskName, description, status };
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        try {
+            await tasksAccessCheck(taskId, authUserId);
+            const updatedTask = await editSubtask(
+                taskId,
+                subtaskId,
+                subtaskChanges
+            );
+            res.status(200).send(updatedTask);
+        } catch (error) {
+            console.log(ERROR_MESSAGE.EDIT_TASK_ERROR, error.message);
+            res.status(404).send(
+                `${ERROR_MESSAGE.EDIT_TASK_ERROR}: ${error.message}`
+            );
+        }
     }
-});
+);
 
-router.delete('/:taskId/subtasks/:subtaskId', async (req, res) => {
-    const taskId = req.params.taskId;
-    const subtaskId = req.params.subtaskId;
-    const authUserId = req.headers.authorization;
+router.delete(
+    '/:taskId/subtasks/:subtaskId',
+    validateId('taskId'),
+    validateId('subtaskId'),
+    async (req, res) => {
+        const taskId = req.params.taskId;
+        const subtaskId = req.params.subtaskId;
+        const authUserId = req.headers.authorization;
 
-    try {
-        await tasksAccessCheck(taskId, authUserId);
+        const errors = validationResult(req);
 
-        const result = await deleteSubtask(taskId, subtaskId);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-        res.status(200).send(`${result}`);
-    } catch (error) {
-        console.log(ERROR_MESSAGE.DELETE__TASK_ERROR, error.message);
-        res.status(404).send(
-            `${ERROR_MESSAGE.DELETE__TASK_ERROR}: ${error.message}`
-        );
+        try {
+            await tasksAccessCheck(taskId, authUserId);
+
+            const result = await deleteSubtask(taskId, subtaskId);
+
+            res.status(200).send(`${result}`);
+        } catch (error) {
+            console.log(ERROR_MESSAGE.DELETE__TASK_ERROR, error.message);
+            res.status(404).send(
+                `${ERROR_MESSAGE.DELETE__TASK_ERROR}: ${error.message}`
+            );
+        }
     }
-});
+);
 
-router.delete('/:taskId', async (req, res) => {
+router.delete('/:taskId', validateId('taskId'), async (req, res) => {
     const taskId = req.params.taskId;
     const authUserId = req.headers.authorization;
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
     try {
         await tasksAccessCheck(taskId, authUserId);

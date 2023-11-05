@@ -5,7 +5,8 @@
     "main": "todo_v6-express.js",
     "scripts": {
         "start": "nodemon main.js",
-        "test": "jest"
+        "test": "jest",
+        "test-deleteUserTasks": "jest /tests/tdd_deleteUserTasks.test.js"
     },
     "repository": {
         "type": "git",

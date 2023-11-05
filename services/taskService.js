@@ -178,6 +178,16 @@ const editSubtask = async (
     return await task.save();
 };
 
+const deleteAllUserTasks = async (userId) => {
+    const result = await Task.deleteMany({ userId: userId });
+
+    if (!result.deletedCount) {
+        throw new Error(ERROR_MESSAGE.TASKS_NOT_FOUND);
+    }
+
+    return `все задачи пользователя успешно удалены`;
+};
+
 module.exports = {
     createTask,
     deleteTask,
@@ -191,4 +201,5 @@ module.exports = {
     getFilterSortedTasks,
     getTodayTasks,
     getNext7DaysTasks,
+    deleteAllUserTasks,
 };

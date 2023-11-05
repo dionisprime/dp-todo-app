@@ -32,6 +32,7 @@ const {
     getFilterSortedTasks,
     getTodayTasks,
     getNext7DaysTasks,
+    deleteAllUserTasks,
 } = require('../services/taskService.js');
 
 router.get(
@@ -362,6 +363,20 @@ router.delete('/:taskId', validateId('taskId'), async (req, res) => {
         console.log(ERROR_MESSAGE.DELETE__TASK_ERROR, error.message);
         res.status(404).send(
             `${ERROR_MESSAGE.DELETE__TASK_ERROR}: ${error.message}`
+        );
+    }
+});
+
+router.delete('/user/:userId', validateId('userId'), async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const result = await deleteAllUserTasks(userId);
+        res.status(200).send(result);
+    } catch (error) {
+        console.log(ERROR_MESSAGE.DELETE_TASKS_ERROR, error.message);
+        res.status(400).send(
+            `${ERROR_MESSAGE.DELETE_TASKS_ERROR}: ${error.message}`
         );
     }
 });
